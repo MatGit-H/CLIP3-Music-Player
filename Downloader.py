@@ -28,7 +28,7 @@ class Downloader:
     def _is_spotify(self, url):
         return "open.spotify.com" in url or url.startswith("spotify:")
 
-    def extract_songs(self):
+    def extract_songs(self): 
         self.songs = {}
         if self._is_spotify(self.url):
             self._extract_spotify()
@@ -46,7 +46,7 @@ class Downloader:
                 continue
             song = Song.from_ydl_entry(entry)
             song.status = SongStatus.QUEUED
-            self.songs[song.id] = (i, song.channel, song.duration)
+            self.songs[i] = (song.title, song.channel, song.duration)
             i += 1
 
     def _extract_spotify(self):
@@ -69,7 +69,7 @@ class Downloader:
             yt_url = spotdl.get_download_urls([entry])[0]
             song.stream_url = yt_url
             song.status = SongStatus.QUEUED
-            self.songs[song.id] = (i, song.channel, song.duration)
+            self.songs[i] = (song.title, song.channel, song.duration)
             i += 1
 
     def start(self):
