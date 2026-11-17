@@ -11,8 +11,10 @@ from rich import box
 from blessed import Terminal
 import threading
 from mutagen import File
-
 import os
+from Downloader import Downloader
+
+
 term = Terminal()
 console = Console()
 running = True
@@ -33,6 +35,7 @@ fileNavEnabled = False
 
 downloaderTextBox = ""
 downloaderFocused = False
+downloaderErrorBox = ""
 
 footerOpen = True
 settingsOpen = False
@@ -45,7 +48,7 @@ debugPrint = set()
 volume = 50
 playlistData = dict()
 def create_layout(width, height, count):
-    global footerOpen, volume, settingsIndex, downloaderTextBox, currentStyle, settingsIndex, sidebarNavMode, running, sidebarNavMode_I, currentSong, playlistData, debugPrint, settingsOpen, playingSong, audioVis, fileNavScroll, fileNavPath
+    global footerOpen, volume, settingsIndex, downloaderErrorBox, downloaderTextBox, currentStyle, settingsIndex, sidebarNavMode, running, sidebarNavMode_I, currentSong, playlistData, debugPrint, settingsOpen, playingSong, audioVis, fileNavScroll, fileNavPath
     layout = Layout()
     if settingsOpen:
         layout.split_column(
@@ -228,7 +231,7 @@ def create_layout(width, height, count):
         # Sidebar Content =================================================================================
         
         # playlist data is {index: (title, artistname, time)}
-
+        # {}
         contentData = []
         # Header for playlist
         contentData.append(Align.left(f'{fileNavPath}\n', style='grey50'),)
@@ -287,9 +290,9 @@ def create_layout(width, height, count):
 
         # Footer ========================================================================================================
         if footerOpen:
-
+            
             content = Group(   
-                Align.left(f'Enter URL to Download: {downloaderTextBox}')
+                Align.left(f'Enter URL to Download: {downloaderErrorBox if len(downloaderTextBox) == 0 else downloaderTextBox}')
             )
 
             layout["download"].update(Panel(content, box=currentStyle,title=f"{'[black on white]-=-=- Downloader (D) -=-=-' if downloaderFocused else 'Downloader (D)'}"))
@@ -407,7 +410,7 @@ def render_file_nav():
 def keyboard_worker():
     global running, footerOpen, volume, sidebarNavMode, sidebarNavMode_I, playlistData, currentSong, debugPrint, settingsOpen, playingSong, fileNavScroll
     global fileNavPath, fileNavItems, fileNavIndex, fileNavEnabled, currentStyle, downloaderFocused, downloaderTextBox
-    global fileNavShowSongs, settingsIndex
+    global fileNavShowSongs, settingsIndex, debugPrint, running, downloaderErrorBox
     with term.cbreak():
         while running:
             key = term.inkey(timeout=0.1)
@@ -420,8 +423,29 @@ def keyboard_worker():
                 elif key.name == "BRACKETED_PASTE":
                     pasted_content = key.text
                     downloaderTextBox += pasted_content
+                elif key.name == "KEY_BACKSPACE":
+                    downloaderTextBox = downloaderTextBox[:-1]
+                elif key.name == "KEY_ENTER":
+                    if len(downloaderTextBox) < 7:
+                        downloaderErrorBox = "[red]Not a Valid URL!"
+                        downloaderTextBox = ""
+                    downloader = Downloader(downloaderTextBox)
+                    try:
+                        downloader.extract_songs()
+                    
+                        next_index = max(playlistData.keys(), default=0) + 1
+                        for song_id, (title, channel, duration) in downloader.songs.items():
+                            debugPrint.add(f"Song ID: {song_id}, Title: {title}, Channel: {channel}, Duration: {duration}")
+                            playlistData[next_index] = (title, channel, duration)
+                            next_index += 1
+                        
+                        downloaderTextBox = ""
+                    except:
+                        downloaderErrorBox = "[red]Not a Valid URL!"
+                        downloaderTextBox = ""
                 else:
-                    downloaderTextBox += key.lower()
+                    downloaderTextBox += key
+                
             else:       
                 if key.lower() == "b":
                     footerOpen = not footerOpen
@@ -507,6 +531,7 @@ def keyboard_worker():
                             refresh_file_nav()
                 elif key.name == "KEY_ENTER":
                     debugPrint.add(f"{playingSong},{currentSong}")
+                    
                     if settingsOpen:
                         if settingsIndex == 0:
                             currentStyle = box.ROUNDED
@@ -522,6 +547,9 @@ def keyboard_worker():
                             currentStyle = box.MINIMAL_HEAVY_HEAD
                         elif settingsIndex == 6:
                             currentStyle = box.HORIZONTALS
+
+                    else:
+                        
                         if sidebarNavMode:
                             playingSong = True
                             currentSong = playlistData[sidebarNavMode_I]
@@ -531,7 +559,8 @@ def keyboard_worker():
 
                             if selected["type"] == "folder":
                                 folderData = get_folder_data(selected["path"])
-                                debugPrint.add(f"importing {selected['name']}")
+                                debugPrint.add(f"importing {selected['name']}")\
+                                # {1 (t, a ,t)
                                 next_index = max(playlistData.keys(), default=0) + 1
 
                                 for song in folderData.values():
