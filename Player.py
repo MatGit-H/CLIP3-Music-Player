@@ -1,4 +1,4 @@
-from decoder.Decoder import Decoder
+from Decoder import Decoder
 from shared.audio import CHANNELS, DTYPE, SAMPLE_RATE
 from shared.song import SongStatus
 import numpy as np

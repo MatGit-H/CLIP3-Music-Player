@@ -46,7 +46,7 @@ class Downloader:
                 continue
             song = Song.from_ydl_entry(entry)
             song.status = SongStatus.QUEUED
-            self.songs[i] = (song.title, song.channel, song.duration)
+            self.songs[i] = (song.title, song.channel, f"{song.duration // 60}:{song.duration % 60:02d}")
             i += 1
 
     def _extract_spotify(self):
@@ -69,7 +69,7 @@ class Downloader:
             yt_url = spotdl.get_download_urls([entry])[0]
             song.stream_url = yt_url
             song.status = SongStatus.QUEUED
-            self.songs[i] = (song.title, song.channel, song.duration)
+            self.songs[i] = (song.title, song.channel, f"{song.duration // 60}:{song.duration % 60:02d}")
             i += 1
 
     def start(self):
@@ -106,4 +106,4 @@ class Downloader:
         with YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=True)
             song.local_path = ydl.prepare_filename(info)
-        song.status = SongStatus.DONE
+        song.status = SongStatus.READY
