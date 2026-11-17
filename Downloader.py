@@ -46,7 +46,7 @@ class Downloader:
                 continue
             song = Song.from_ydl_entry(entry)
             song.status = SongStatus.QUEUED
-            self.songs[i] = (song.title, song.channel, f"{song.duration // 60}:{song.duration % 60:02d}")
+            self.songs[i] = song
             i += 1
 
     def _extract_spotify(self):
@@ -69,7 +69,7 @@ class Downloader:
             yt_url = spotdl.get_download_urls([entry])[0]
             song.stream_url = yt_url
             song.status = SongStatus.QUEUED
-            self.songs[i] = (song.title, song.channel, f"{song.duration // 60}:{song.duration % 60:02d}")
+            self.songs[i] = song
             i += 1
 
     def start(self):
@@ -99,9 +99,11 @@ class Downloader:
             song.error = "missing url"
             return
         song.status = SongStatus.DOWNLOADING
+        # Title--Channel.ext so file-nav can slice artist back out of the name
+        channel = song.channel or "Unknown"
         opts = {
             **self.download_opts,
-            'outtmpl' : f"downloads/{song.title}.%(ext)s",
+            'outtmpl': f"downloads/{song.title}--{channel}.%(ext)s",
         }
         with YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=True)

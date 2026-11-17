@@ -6,7 +6,11 @@ downloader.start()
 if downloader._thread:
     downloader._thread.join()
 
-for i, (title, channel, duration) in downloader.songs.items():
-    print(
-        f"[{i}] {title} | {channel} | {duration}"
-    )
+for i, song in downloader.songs.items():
+    duration = song.duration
+    if duration is None:
+        time_str = "?:??"
+    else:
+        s = int(duration)
+        time_str = f"{s // 60}:{s % 60:02d}"
+    print(f"[{i}] {song.title} | {song.channel} | {time_str} | {song.local_path} | {song.status}")
