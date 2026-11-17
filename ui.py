@@ -13,7 +13,7 @@ import threading
 from mutagen import File
 import os
 from Downloader import Downloader
-
+from Player import Player
 
 term = Terminal()
 console = Console()
@@ -431,7 +431,7 @@ def keyboard_worker():
                         downloaderTextBox = ""
                     downloader = Downloader(downloaderTextBox)
                     try:
-                        downloader.extract_songs()
+                        downloader.start()
                     
                         next_index = max(playlistData.keys(), default=0) + 1
                         for song_id, (title, channel, duration) in downloader.songs.items():
@@ -444,7 +444,8 @@ def keyboard_worker():
                         downloaderErrorBox = "[red]Not a Valid URL!"
                         downloaderTextBox = ""
                 else:
-                    downloaderTextBox += key
+                    if not key.is_sequence and key.isprintable():
+                        downloaderTextBox += key
                 
             else:       
                 if key.lower() == "b":
@@ -553,6 +554,8 @@ def keyboard_worker():
                         if sidebarNavMode:
                             playingSong = True
                             currentSong = playlistData[sidebarNavMode_I]
+                            debugPrint.add(currentSong)
+                            
                         
                         elif fileNavEnabled and fileNavItems:
                             selected = fileNavItems[fileNavIndex]
