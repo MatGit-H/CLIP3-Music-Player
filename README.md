@@ -1,1 +1,77 @@
-# CLIP3-Music-Player
+# CLIP3
+
+**CLIP3** is a terminal music player with an interactive user interface that is controlled using the keyboard. It is able to play music by navigating to specific folders and importing them. Additionally, you are able to use our Downloader to import music by pasting Youtube or Spotify URL's.
+
+
+
+## Install
+
+
+```bash
+git clone https://github.com/MatGit-H/CLIP3-Music-Player.git
+cd CLIP3
+pip install .
+```
+
+
+### How to run it:
+Command to run the program (from anywhere):
+```bash
+clip3          
+```
+### OR (in /CLIP3)
+```bash
+src\clip3\cli.py
+```
+---
+
+## How to use it
+
+### Playing music from existing folders
+1. Run `clip3` from any directory (your music library is created relative to that cwd).
+2. Press **`K`** to enter File Navigation Mode, where you can use arrow keys to navigate to your chosen folder
+3. Once you've navigated to your chosen folder you can press **`Enter`** on that folder to add all songs to the playlist, or press **`Enter`** on each individual song.
+4. Now you can play the songs from the playlist (on the right) by hitting **`Space`** to toggle Pause/Unpause.
+5. You can navigate to any song from the playlist by pressing **`N`** to enter Playlist Navigation Mode and control it with arrow keys and **`Enter`**
+
+### Importing music with the downloader
+1. Press ``D`` to focus the downloader and copy and paste a Youtube or Spotify URL.
+2. From here, answer the questions it'll ask and the playlist should update with the songs added.
+
+---
+
+## Controls
+
+### Normal mode
+
+| Key | Action |
+|-----|--------|
+| `Space` | Pause / Resume |
+| `K` | Enter File Navigation Mode |
+| `N` | Enter Playlist Navigation Mode |
+| `B` | Collapse / Expand Footer |
+| `↑` / `↓` | Volume up / down |
+| `I` | Info / Settings |
+| `Esc` | Quit |
+
+### File Navigation mode (K)
+
+| Key | Action |
+|-----|--------|
+| `K` | Exit/Enter Playlist Navigation Mode |
+|  `↑` / `↓` | Move UP/DOWN |
+| `←` / `→`  | Exit Folder / Enter Folder |
+| `Enter` | Add Song / Entire Folder to current playlist |
+
+### Playlist Navigation mode (N)
+
+| Key | Action |
+|-----|--------|
+| `N` | Exit/Enter Playlist Navigation Mode |
+|  `↑` `↓` | Move UP/DOWN |
+| `Enter` | Play Song |
+
+---
+## License
+
+MIT — see `pyproject.toml`.
