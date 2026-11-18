@@ -17,7 +17,7 @@ def _db_to_unit(amplitude, floor_db):
 
 class Spectrum:
     def __init__(self, n_bars, fft_size=4096, fmin=40.0, fmax=16000.0,
-                 floor_db=-70.0, tilt_db_per_octave=3.0, attack=0.6, decay=0.12):
+                 floor_db=-70.0, tilt_db_per_octave=3.0, attack=0.1, decay=0.12):
         self.n_bars = n_bars
         self.fft_size = fft_size
         self.floor_db = floor_db

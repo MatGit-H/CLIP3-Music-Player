@@ -6,7 +6,6 @@ from rich.live import Live
 from rich.text import Text
 from rich.align import Align
 from rich.table import Table
-from rich import print as rprint
 from rich import box
 from blessed import Terminal
 import threading
@@ -32,7 +31,8 @@ fileNavPath = os.getcwd()
 fileNavItems = []
 fileNavIndex = 0
 fileNavScroll = 0
-
+sidebarScrollOffset = 0
+max_visible_songs = 20
 fileNavShowSongs = True
 
 fileNavEnabled = False
@@ -40,7 +40,7 @@ fileNavEnabled = False
 downloaderTextBox = ""
 downloaderFocused = False
 downloaderErrorBox = ""
-active_downloader = None  # Downloader running in background, or None
+active_downloader = None  # downloader running in background, or None
 imported_download_ids = set()  # id(song) already added to playlistData
 
 footerOpen = True
@@ -48,14 +48,15 @@ settingsOpen = False
 playingSong = False
 sidebarNavMode = False
 sidebarNavMode_I = 0
-currentSong = None  # Song | None
+currentSong = None  # song or None
 debugPrint = set()
-
+tempwidth = 0
 volume = 50
 playlistData = {}  # dict[int, Song]
 
 
 # Since we will be using the Song object from downloader i wont pass in duration in formatted form so i will add formatter here. -Ryan
+# yep thats fine -Mat
 def fmt_duration(seconds):
     if seconds is None:
         return "0:00"
@@ -108,9 +109,14 @@ def autoplay(player):
         active_downloader = None
 
 
+# LAYOUT CREATOR (MAIN RENDERER)
+
 def create_layout(width, height, count, player, spectrum):
-    global footerOpen, volume, settingsIndex, downloaderErrorBox, downloaderTextBox, currentStyle, settingsIndex, sidebarNavMode, running, sidebarNavMode_I, currentSong, playlistData, debugPrint, settingsOpen, playingSong, audioVis, fileNavScroll, fileNavPath
+    global footerOpen, volume, settingsIndex, max_visible_songs, sidebarScrollOffset,tempwidth, downloaderErrorBox, downloaderTextBox, currentStyle, settingsIndex, sidebarNavMode, running, sidebarNavMode_I, currentSong, playlistData, debugPrint, settingsOpen, playingSong, audioVis, fileNavScroll, fileNavPath
     layout = Layout()
+
+
+    # SETTINGS ------------------------------------------------------------------------------------------------
     if settingsOpen:
         layout.split_column(
             Layout(name="header", size=3),
@@ -120,14 +126,14 @@ def create_layout(width, height, count, player, spectrum):
             Layout(name="settings", ratio=3),
             Layout(name="info", ratio=2)
         )
-        # HEADER (SETTINGS MENU) -------------------------------------------------------------------------------
+        # HEADER (SETTINGS MENU) -----------------------------------------
         header = Table.grid(expand=True)
         header.add_column(justify='left')
         header.add_column(justify="center")
         header.add_column(justify="right")
         hRow = []
         hRow.append("♫ [bold red]CLIP3 [bold white]Music Player ♫     (SETTINGS/INFO)")
-        hRow.append("(S) ⚙/🛈  ")
+        hRow.append("(S) ⚙  / 🛈  ")
         max_width = 20
         filled = int((volume/100)*max_width)
         empty = max_width - filled
@@ -138,7 +144,7 @@ def create_layout(width, height, count, player, spectrum):
         layout["header"].update(
             Panel(header, box=currentStyle)
         )
-        # SETTINGS MENU ---------------------------------------------------------------------------------------------------
+        # SETTINGS MENU --------------------------------------------------
         
 
         # if settingsIndex == 0:
@@ -158,7 +164,7 @@ def create_layout(width, height, count, player, spectrum):
         # elif settingsIndex == 7:
         #     currentStyle = box.HORIZONTALS
         contentData = [
-            Align.left("Settings Here: (placeholder)\n\n"),
+            Align.left("Settings:\n\n"),
             Align.left(f"Current Style: \n"),
             Align.left(f"{"[black on white]" if settingsIndex == 0 else ""}{'[✓]' if currentStyle == box.ROUNDED else '[X]'} 1 - Rounded Corners"),
             Align.left(f"{"[black on white]" if settingsIndex == 1 else ""}{'[✓]' if currentStyle == box.ASCII else '[X]'} 2 - ASCII Characters"),
@@ -172,15 +178,28 @@ def create_layout(width, height, count, player, spectrum):
         layout["settings"].update(
             Panel(content,box=currentStyle)
         )
-        # INFO MENU ------------------------------------------------------------------------------------------------------
+        # INFO MENU -----------------------------------------------------------
 
         content = Group(
             
-            Align.center("\n\n IN NORMAL MODE: ARROW KEYS FOR VOLUME (top right) \n\n"),
-            Align.center("\n\n IN NORMAL MODE: [B] FOR BOTTOM BAR TOGGLE \n\n"),
-            Align.center("\n\n IN NORMAL MODE: [SPACE] FOR PLAYING SONG \n\n"),
-            Align.center("\n\n SIDEBAR NAV MODE: PRESS [N] "),
-            Align.center("\nARROW KEYS TO MOVE AROUND, ENTER TO SELECT SONG \n")
+            Align.center("\n\n In Normal Mode:\n\n"),
+            Align.center("Space | Pause / Resume"),
+            Align.center("K | File Nav Mode"),
+            Align.center("N | Playlist Nav Mode"),
+            Align.center("B | Toggle Footer"),
+            Align.center("S | Settings/Info"),
+            Align.center("\n\n In File Nav Mode:\n\n"),
+            Align.center("UP DOWN | Move UP/DOWN"),
+            Align.center("LEFT RIGHT | Exit / Enter Folder"),
+            Align.center("Enter | Add Entire Folder or Song to playlist"),
+            Align.center("\n\n In Playlist Nav Mode:\n\n"),
+            Align.center("UP DOWN | Move UP/DOWN"),
+            Align.center("Enter | Play Song"),
+            Align.center("\n\n In Downloader \n\n"),
+            Align.center("Type/Paste | Adds text to Textbox"),
+            Align.center("Enter | Queries URL and adds that to playlist"),
+            
+            
             
         )
 
@@ -189,6 +208,7 @@ def create_layout(width, height, count, player, spectrum):
         )
 
         return layout
+    # MAIN LAYOUT (NON SETTINGS) ---------------------------------------------------------------------------------------
     else:
         if footerOpen: # perhaps in the future, we add an animation for closing/opening
             layout.split_column(
@@ -241,11 +261,20 @@ def create_layout(width, height, count, player, spectrum):
         else:
             filled = 0
         filled = max(0, min(filled, max_width))
-        progressbar = "▓" * filled + "." * (max_width - filled)
+        progressbar = "█" * filled + "-" * (max_width - filled)
+        progress = (pos / dur * 100) if dur > 0 else 0.0
+        progress = max(0.0, min(progress, 100.0))
 
-        viz_height = 7
+        viz_height = int(height*.5)
+
         wave_width = max(16, min(max_width, 34))
-        wave_height = 3
+        wave_height = 4
+
+
+        if width != tempwidth: # optimization, check if its changed at all, if so then update
+            width = max_width
+            spectrum = Spectrum(n_bars=(int(max_width*0.7)), fft_size=2048, floor_db=-90.0, attack=0.55, decay=0.12)
+
 
         if player.song is not None and not player.paused:
             samples = player.latest(spectrum.fft_size)
@@ -266,23 +295,29 @@ def create_layout(width, height, count, player, spectrum):
             songArtist = currentSong.channel or "N/A"
             songTime = f"{fmt_duration(pos)} / {fmt_duration(dur)}"
 
-        playingIcon = "►" if playingSong else "❚❚"
+
+        playingIcon = "►" if playingSong else ""
         content = Group(
             Align.center(Group(*audioVis)),
             Align.center(Group(*waveVis)),
             Align.center(Text(f"{songText}", style="bold white")),
             Align.center(Text(f"{songArtist}", style="grey50")),
-            Align.left(Text(f"{playingIcon} {songTime}", style="bold white")),
-            Align.center(Text(f"{progressbar}\n")),
+            Align.center(Text(f"{playingIcon}", style="bold white")),
+            Align.center(Text(f"{progressbar}")),
+            Align.center(Text(f"{songTime}", style="bold white")),
         )
         layout["player"].update(
-            Panel(Align.center(content, vertical="bottom"),box=currentStyle))
+            Panel(Align.center(content, vertical="middle"),box=currentStyle))
 
         # Sidebar Content =================================================================================
         contentData = []
         contentData.append(Align.left(f'{fileNavPath}\n', style='grey50'),)
         contentData.append(Align.center(f'[bold italic white on grey50]#   Title       Artist       Time\n'))
-        for index, song in playlistData.items():
+        update_playlist_scroll(height)
+    
+        
+        visible_songs = list(playlistData.items())[sidebarScrollOffset:sidebarScrollOffset + max_visible_songs]
+        for index, song in visible_songs:
             title = song.title
             artistname = song.channel or "N/A"
             time = fmt_duration(song.duration)
@@ -329,15 +364,16 @@ def create_layout(width, height, count, player, spectrum):
             content = Group(   
                 Align.left(f'Enter URL to Download: {downloaderErrorBox if len(downloaderTextBox) == 0 else downloaderTextBox}')
             )
+            try:
+                layout["download"].update(Panel(content, box=currentStyle,title=f"{'[black on white]-=-=- Downloader (D) -=-=- (PRESS ESC TO EXIT)' if downloaderFocused else 'Downloader (D)'}"))
+            
 
-            layout["download"].update(Panel(content, box=currentStyle,title=f"{'[black on white]-=-=- Downloader (D) -=-=-' if downloaderFocused else 'Downloader (D)'}"))
 
-
-
-            layout["filenav"].update(
+                layout["filenav"].update(
                 Panel(render_file_nav(),box=currentStyle,title=f"{'[black on white]=-=- File Navigation (K) -=-=' if fileNavEnabled else 'File Navigation (K)'}"))
 
-
+            except:
+                pass # for some reason it was crashing because 'download' wasnt defined even though it should be defined if footerOpen, so idk
         return layout
 
 def get_folder_data(folder_path):
@@ -444,17 +480,19 @@ def render_file_nav():
     )
 
     return "\n".join(content)
+
+# this func handles all keyboard inputs
 def keyboard_worker(player):
     global running, footerOpen, volume, sidebarNavMode, sidebarNavMode_I, playlistData, currentSong, debugPrint, settingsOpen, playingSong, fileNavScroll
     global fileNavPath, fileNavItems, fileNavIndex, fileNavEnabled, currentStyle, downloaderFocused, downloaderTextBox
-    global fileNavShowSongs, settingsIndex, debugPrint, running, downloaderErrorBox, active_downloader
+    global fileNavShowSongs, settingsIndex, debugPrint, running, downloaderErrorBox, active_downloader, height
     with term.cbreak():
         while running:
             key = term.inkey(timeout=0.1)
             
             if not key:
                 continue
-            if downloaderFocused:
+            if downloaderFocused: # <--------- DOWNLOADER ONLY
                 if key.name == "KEY_ESCAPE":
                     downloaderFocused = False
                 elif key.name == "BRACKETED_PASTE":
@@ -486,13 +524,15 @@ def keyboard_worker(player):
                     if not key.is_sequence and key.isprintable():
                         downloaderTextBox += key
                 
-            else:       
+            else:    # <--------- EVERYTHING EXCEPT DOWNLOADER NOW
+
                 if key.lower() == "b":
                     footerOpen = not footerOpen
                 elif key.lower() == "i":
-                    fileNavShowSongs = not fileNavShowSongs
-                    fileNavIndex = 0
-                    refresh_file_nav()
+                    if fileNavEnabled:
+                        fileNavShowSongs = not fileNavShowSongs
+                        fileNavIndex = 0
+                        refresh_file_nav()
                 elif key.lower() == "k":
                     if settingsOpen == False:
                         downloaderFocused = False
@@ -533,10 +573,13 @@ def keyboard_worker(player):
                             if fileNavIndex > 0:
                                 fileNavIndex -= 1
 
-                            update_file_nav_scroll()
+                            update_playlist_scroll(height)
 
                         elif sidebarNavMode:
-                            sidebarNavMode_I -= 1
+                            
+                            if sidebarNavMode_I > 0:
+                                sidebarNavMode_I -= 1
+                            update_playlist_scroll(height)
 
                         else:
                             if volume < 100:
@@ -555,7 +598,10 @@ def keyboard_worker(player):
                             update_file_nav_scroll()
 
                         elif sidebarNavMode:
-                            sidebarNavMode_I += 1
+                            if sidebarNavMode_I < len(playlistData) - 1:
+                                sidebarNavMode_I += 1
+                            update_playlist_scroll(height)
+                            
 
                         else:
                             if volume > 0:
@@ -640,7 +686,20 @@ def update_file_nav_scroll():
     elif fileNavIndex >= fileNavScroll + visibleItems:
         fileNavScroll = fileNavIndex - visibleItems + 1
 
+def update_playlist_scroll(height): # unfortunately couldnt get it to render it based on the terminal height
+    global max_visible_songs, sidebarNavMode_I, sidebarScrollOffset
 
+    max_visible_songs = 15 if footerOpen else 25
+
+    max_scroll = max(0, len(playlistData) - max_visible_songs)
+
+    if sidebarNavMode_I < sidebarScrollOffset:
+        sidebarScrollOffset = sidebarNavMode_I
+
+    elif sidebarNavMode_I >= sidebarScrollOffset + max_visible_songs:
+        sidebarScrollOffset = sidebarNavMode_I - max_visible_songs + 1
+
+    sidebarScrollOffset = max(0, min(sidebarScrollOffset, max_scroll))
 def refresh_file_nav():
     global fileNavItems, fileNavIndex, fileNavPath
 
@@ -679,7 +738,7 @@ def refresh_file_nav():
 refresh_file_nav()
 player = Player() # Player object should be accessible by keyboard worker so I created here and will pass it to keyboardworker as an argument -Ryan
 player.set_volume(volume / 100)
-spectrum = Spectrum(n_bars=17, fft_size=2048, floor_db=-70.0, attack=0.55, decay=0.12)
+spectrum = Spectrum(n_bars=32, fft_size=2048, floor_db=-90.0, attack=0.55, decay=0.12)
 keyboardThread = threading.Thread(target=keyboard_worker, args=(player,), daemon=True)
 keyboardThread.start()
 
@@ -695,7 +754,6 @@ try:
             width = size.width
             
             height = size.height
-            
             autoplay(player)
             layout = create_layout(width, height, count, player, spectrum)
             live.update(layout, refresh=True)
@@ -705,7 +763,9 @@ except KeyboardInterrupt:
     running = False  # let keyboard_worker leave inkey loop and exit term.cbreak() without this after quitting my terminal would be messed up and I would have to reset it. -Ryan
     player.close()
     keyboardThread.join(timeout=1.0) # This fully waits for the keyboard thread to exit before exiting the program. -Ryan
-    for x in debugPrint:
-        print(x)
+    # uncomment this for debugprint after exit
+    # for x in debugPrint: 
+    #     print(x)
+
     print("CLIP3 exited successfully")
     raise SystemExit(0)
