@@ -26,15 +26,14 @@ count = 0
 currentStyle = box.ROUNDED
 settingsIndex = 0
 
-fileNavPath = os.getcwd()
 
+fileNavPath = os.getcwd()
 fileNavItems = []
 fileNavIndex = 0
 fileNavScroll = 0
 sidebarScrollOffset = 0
 max_visible_songs = 20
 fileNavShowSongs = True
-
 fileNavEnabled = False
 
 downloaderTextBox = ""
@@ -55,58 +54,6 @@ volume = 50
 playlistData = {}  # dict[int, Song]
 
 
-# Since we will be using the Song object from downloader i wont pass in duration in formatted form so i will add formatter here. -Ryan
-# yep thats fine -Mat
-def fmt_duration(seconds):
-    if seconds is None:
-        return "0:00"
-    s = int(seconds)
-    return f"{s // 60}:{s % 60:02d}"
-
-
-def next_playlist_index():
-    return max(playlistData.keys(), default=-1) + 1
-
-
-# Autoplay while background worker downloads this checks using Song Object's states and adds to playlistData if the song is ready and has a local path. -Ryan
-def autoplay(player):
-    global active_downloader, playlistData, currentSong, playingSong
-    global downloaderErrorBox, imported_download_ids
-
-    dl = active_downloader
-    if dl is None:
-        return
-
-    for song in dl.songs.values():
-        if song.status != SongStatus.READY or not song.local_path:
-            continue
-        sid = id(song)
-        if sid in imported_download_ids:
-            continue
-        playlistData[next_playlist_index()] = song
-        imported_download_ids.add(sid)
-        debugPrint.add(
-            f"downloaded: {song.title} | {song.channel} | {song.local_path}"
-        )
-        if player.song is None:
-            try:
-                currentSong = song
-                player.play(song)
-                playingSong = True
-            except Exception as e:
-                debugPrint.add(f"autoplay failed: {e}")
-
-    alive = dl._thread is not None and dl._thread.is_alive()
-    if not alive:
-        errors = [
-            s for s in dl.songs.values()
-            if s.status == SongStatus.ERROR
-        ]
-        if errors:
-            downloaderErrorBox = f"[red]Download finished with {len(errors)} error(s)"
-        else:
-            downloaderErrorBox = "[green]Download complete"
-        active_downloader = None
 
 
 # LAYOUT CREATOR (MAIN RENDERER)
@@ -147,22 +94,6 @@ def create_layout(width, height, count, player, spectrum):
         # SETTINGS MENU --------------------------------------------------
         
 
-        # if settingsIndex == 0:
-        #     currentStyle = box.ROUNDED
-        # elif settingsIndex == 1:
-        #     currentStyle = box.ASCII
-        # elif settingsIndex == 2:
-        #     currentStyle = box.DOUBLE
-        # elif settingsIndex == 3:
-        #     currentStyle = box.MARKDOWN
-        # elif settingsIndex == 4:
-        #     currentStyle = box.HEAVY
-        # elif settingsIndex == 5:
-        #     currentStyle = box.MINIMAL_HEAVY_HEAD
-        # elif settingsIndex == 6:
-        #     currentStyle = box.SIMPLE_HEAAD
-        # elif settingsIndex == 7:
-        #     currentStyle = box.HORIZONTALS
         contentData = [
             Align.left("Settings:\n\n"),
             Align.left(f"Current Style: \n"),
@@ -573,7 +504,7 @@ def keyboard_worker(player):
                             if fileNavIndex > 0:
                                 fileNavIndex -= 1
 
-                            update_playlist_scroll(height)
+                            update_file_nav_scroll()
 
                         elif sidebarNavMode:
                             
@@ -674,6 +605,62 @@ def keyboard_worker(player):
                                 song = get_song_data(selected["path"])
                                 playlistData[next_playlist_index()] = song
                                 debugPrint.add(f"added song {song.title}")
+
+# other functions
+
+
+# Since we will be using the Song object from downloader i wont pass in duration in formatted form so i will add formatter here. -Ryan
+# yep thats fine -Mat
+def fmt_duration(seconds):
+    if seconds is None:
+        return "0:00"
+    s = int(seconds)
+    return f"{s // 60}:{s % 60:02d}"
+
+
+def next_playlist_index():
+    return max(playlistData.keys(), default=-1) + 1
+
+
+# Autoplay while background worker downloads this checks using Song Object's states and adds to playlistData if the song is ready and has a local path. -Ryan
+def autoplay(player):
+    global active_downloader, playlistData, currentSong, playingSong
+    global downloaderErrorBox, imported_download_ids
+
+    dl = active_downloader
+    if dl is None:
+        return
+
+    for song in dl.songs.values():
+        if song.status != SongStatus.READY or not song.local_path:
+            continue
+        sid = id(song)
+        if sid in imported_download_ids:
+            continue
+        playlistData[next_playlist_index()] = song
+        imported_download_ids.add(sid)
+        debugPrint.add(
+            f"downloaded: {song.title} | {song.channel} | {song.local_path}"
+        )
+        if player.song is None:
+            try:
+                currentSong = song
+                player.play(song)
+                playingSong = True
+            except Exception as e:
+                debugPrint.add(f"autoplay failed: {e}")
+
+    alive = dl._thread is not None and dl._thread.is_alive()
+    if not alive:
+        errors = [
+            s for s in dl.songs.values()
+            if s.status == SongStatus.ERROR
+        ]
+        if errors:
+            downloaderErrorBox = f"[red]Download finished with {len(errors)} error(s)"
+        else:
+            downloaderErrorBox = "[green]Download complete"
+        active_downloader = None
 
 def update_file_nav_scroll():
     global fileNavScroll, fileNavIndex
