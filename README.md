@@ -2,28 +2,25 @@
 
 **CLIP3** is a terminal music player with an interactive user interface that is controlled using the keyboard. It is able to play music by navigating to specific folders and importing them. Additionally, you are able to use our Downloader to import music by pasting Youtube or Spotify URL's.
 
+## Project Video
 
+https://www.youtube.com/watch?v=Oq-ToTZjyi4
 
 ## Install
 
 
 ```bash
 git clone https://github.com/MatGit-H/CLIP3-Music-Player.git
-cd CLIP3
+cd CLIP3-Music-Player
 pip install .
 ```
 
 
 ### How to run it:
-Command to run the program (from anywhere):
+Command to run the program (in /CLIP3-Music-Player):
 ```bash
-clip3          
+ui.py          
 ```
-### OR (in /CLIP3)
-```bash
-src\clip3\cli.py
-```
----
 
 ## How to use it
 
