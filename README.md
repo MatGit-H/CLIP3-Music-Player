@@ -4,7 +4,7 @@
 
 ## Project Video
 
-https://www.youtube.com/watch?v=Oq-ToTZjyi4
+[https://www.youtube.com/watch?v=Oq-ToTZjyi4](https://www.youtube.com/watch?v=6f4SQkOQcb4)
 
 ## Project Report PDF
 
