@@ -25,6 +25,7 @@ https://www.youtube.com/watch?v=Oq-ToTZjyi4
 git clone https://github.com/MatGit-H/CLIP3-Music-Player.git
 cd CLIP3-Music-Player
 pip install .
+
 ```
 
 ## Uninstall
@@ -53,8 +54,8 @@ python ui.py
 ## How to use it
 
 ### Playing music from existing folders
-1. Press **`K`** to enter File Navigation Mode, where you can use arrow keys to navigate to your chosen folder
-2. Once you've navigated to your chosen folder you can press **`Enter`** on that folder to add all songs to the playlist, or press **`Enter`** on each individual song.
+1. Press **`K`** to enter File Navigation Mode, where you can use arrow keys to navigate to your chosen folder. (UP/DOWN to move and LEFT/RIGHT to exit/enter)
+2. Once you've navigated to your chosen folder you can press **`Enter`** on that folder to add the songs within to the playlist, or press **`Enter`** on each individual song.
 3. Exit File Navigation mode by pressing **`K`** again.
 4. Press **`N`** to enter playlist navigation mode where you can navigate to your selected song and press **`Enter`** to play it.
 5. Pause/Resume by pressing **`Space`**.
