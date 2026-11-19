@@ -21,8 +21,8 @@ dependencies = [
 ]
 
 [project.scripts]
-clip3 = "ui:main"
+clip3 = "cli:main"
 
 [tool.setuptools]
-py-modules = ["ui", "Decoder", "Downloader", "Player", "Visualizer"]
+py-modules = ["cli", "ui", "Decoder", "Downloader", "Player", "Visualizer"]
 packages = ["shared"]
