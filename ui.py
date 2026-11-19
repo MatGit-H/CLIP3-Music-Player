@@ -722,37 +722,43 @@ def refresh_file_nav():
 
 
 
-refresh_file_nav()
-player = Player() # Player object should be accessible by keyboard worker so I created here and will pass it to keyboardworker as an argument -Ryan
-player.set_volume(volume / 100)
-spectrum = Spectrum(n_bars=32, fft_size=2048, floor_db=-90.0, attack=0.55, decay=0.12)
-keyboardThread = threading.Thread(target=keyboard_worker, args=(player,), daemon=True)
-keyboardThread.start()
+def main():
+    global running, count
+    refresh_file_nav()
+    player = Player() # Player object should be accessible by keyboard worker so I created here and will pass it to keyboardworker as an argument -Ryan
+    player.set_volume(volume / 100)
+    spectrum = Spectrum(n_bars=32, fft_size=2048, floor_db=-90.0, attack=0.55, decay=0.12)
+    keyboardThread = threading.Thread(target=keyboard_worker, args=(player,), daemon=True)
+    keyboardThread.start()
 
-try:
-    with Live(console=console, refresh_per_second=10, screen=True,vertical_overflow='crop') as live:
-        while running:
+    try:
+        with Live(console=console, refresh_per_second=10, screen=True,vertical_overflow='crop') as live:
+            while running:
 
-            count += 1
-            if count >= 500:
-                count = 0
-            size = console.size
-            
-            width = size.width
-            
-            height = size.height
-            autoplay(player)
-            layout = create_layout(width, height, count, player, spectrum)
-            live.update(layout, refresh=True)
+                count += 1
+                if count >= 500:
+                    count = 0
+                size = console.size
+
+                width = size.width
+
+                height = size.height
+                autoplay(player)
+                layout = create_layout(width, height, count, player, spectrum)
+                live.update(layout, refresh=True)
 
 
-except KeyboardInterrupt:
-    running = False  # let keyboard_worker leave inkey loop and exit term.cbreak() without this after quitting my terminal would be messed up and I would have to reset it. -Ryan
-    player.close()
-    keyboardThread.join(timeout=1.0) # This fully waits for the keyboard thread to exit before exiting the program. -Ryan
-    # uncomment this for debugprint after exit
-    # for x in debugPrint: 
-    #     print(x)
+    except KeyboardInterrupt:
+        running = False  # let keyboard_worker leave inkey loop and exit term.cbreak() without this after quitting my terminal would be messed up and I would have to reset it. -Ryan
+        player.close()
+        keyboardThread.join(timeout=1.0) # This fully waits for the keyboard thread to exit before exiting the program. -Ryan
+        # uncomment this for debugprint after exit
+        # for x in debugPrint:
+        #     print(x)
 
-    print("CLIP3 exited successfully")
-    raise SystemExit(0)
+        print("CLIP3 exited successfully")
+        raise SystemExit(0)
+
+
+if __name__ == "__main__":
+    main()

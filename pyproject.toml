@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clip3"
+version = "0.1.0"
+description = "Terminal music player with a keyboard UI, local folders, and YouTube or Spotify downloads."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "blessed",
+    "ffmpeg-python",
+    "mutagen",
+    "numpy",
+    "rich",
+    "sounddevice",
+    "spotdl",
+    "yt-dlp",
+]
+
+[project.scripts]
+clip3 = "ui:main"
+
+[tool.setuptools]
+py-modules = ["ui", "Decoder", "Downloader", "Player", "Visualizer"]
+packages = ["shared"]
