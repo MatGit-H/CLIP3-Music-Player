@@ -25,7 +25,7 @@ ui.py
 ## How to use it
 
 ### Playing music from existing folders
-1. Run `clip3` from any directory (your music library is created relative to that cwd).
+1. Run `ui.py` in \CLIP3-Music-Player.
 2. Press **`K`** to enter File Navigation Mode, where you can use arrow keys to navigate to your chosen folder
 3. Once you've navigated to your chosen folder you can press **`Enter`** on that folder to add all songs to the playlist, or press **`Enter`** on each individual song.
 4. Now you can play the songs from the playlist (on the right) by hitting **`Space`** to toggle Pause/Unpause.
@@ -33,7 +33,7 @@ ui.py
 
 ### Importing music with the downloader
 1. Press ``D`` to focus the downloader and copy and paste a Youtube or Spotify URL.
-2. From here, answer the questions it'll ask and the playlist should update with the songs added.
+2. Press ``Enter`` and it will automatically download the songs and show them in the playlist.
 
 ---
 
