@@ -6,6 +6,12 @@
 
 https://www.youtube.com/watch?v=Oq-ToTZjyi4
 
+## Project Report PDF
+
+'CLIP3 Project Report.pdf' in the folder.
+
+[View Full PDF](CLIP3%20Project%20Report.pdf)
+
 ## Install
 
 
