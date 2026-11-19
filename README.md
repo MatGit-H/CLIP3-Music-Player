@@ -32,7 +32,7 @@ ui.py
 5. You can navigate to any song from the playlist by pressing **`N`** to enter Playlist Navigation Mode and control it with arrow keys and **`Enter`**
 
 ### Importing music with the downloader
-1. Press ``D`` to focus the downloader and copy and paste a Youtube or Spotify URL.
+1. Press ``D`` to focus the downloader and copy and paste a audio/video link (anything supported by yt-dlp or spotify URLs).
 2. Press ``Enter`` and it will automatically download the songs and show them in the playlist.
 
 ---
