@@ -21,25 +21,42 @@ cd CLIP3-Music-Player
 pip install .
 ```
 
+## Uninstall
+
+```bash
+pip uninstall clip3
+```
+
 
 ### How to run it:
-Command to run the program (in /CLIP3-Music-Player):
+Command to run the program from anywhere:
+```bash
+clip3
+```
+
+
+Command to run the program in /CLIP3-Music-Player:
 ```bash
 ui.py          
+```
+or
+```bash
+python ui.py     
 ```
 
 ## How to use it
 
 ### Playing music from existing folders
-1. Run `ui.py` in \CLIP3-Music-Player.
-2. Press **`K`** to enter File Navigation Mode, where you can use arrow keys to navigate to your chosen folder
-3. Once you've navigated to your chosen folder you can press **`Enter`** on that folder to add all songs to the playlist, or press **`Enter`** on each individual song.
-4. Now you can play the songs from the playlist (on the right) by hitting **`Space`** to toggle Pause/Unpause.
-5. You can navigate to any song from the playlist by pressing **`N`** to enter Playlist Navigation Mode and control it with arrow keys and **`Enter`**
+1. Press **`K`** to enter File Navigation Mode, where you can use arrow keys to navigate to your chosen folder
+2. Once you've navigated to your chosen folder you can press **`Enter`** on that folder to add all songs to the playlist, or press **`Enter`** on each individual song.
+3. Exit File Navigation mode by pressing **`K`** again.
+4. Press **`N`** to enter playlist navigation mode where you can navigate to your selected song and press **`Enter`** to play it.
+5. Pause/Resume by pressing **`Space`**.
 
 ### Importing music with the downloader
 1. Press ``D`` to focus the downloader and copy and paste a audio/video link (anything supported by yt-dlp or spotify URLs).
-2. Press ``Enter`` and it will automatically download the songs and show them in the playlist.
+2. Press ``Enter`` and it will automatically download the song(s) and show them in the playlist.
+3. Press ``Esc`` to un-focus the downloader.
 
 ---
 
@@ -54,7 +71,7 @@ ui.py
 | `N` | Enter Playlist Navigation Mode |
 | `B` | Collapse / Expand Footer |
 | `↑` / `↓` | Volume up / down |
-| `I` | Info / Settings |
+| `S` | Info / Settings |
 | `Esc` | Quit |
 
 ### File Navigation mode (K)
