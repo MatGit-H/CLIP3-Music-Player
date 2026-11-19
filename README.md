@@ -12,6 +12,12 @@ https://www.youtube.com/watch?v=Oq-ToTZjyi4
 
 [View Full PDF](CLIP3%20Project%20Report.pdf)
 
+## Self Evaluation Form
+
+'CLIP 3 Evaluation 2.xlsx' in the folder.
+
+[View File](CLIP3%20Evaluation%202.xlsx)
+
 ## Install
 
 
